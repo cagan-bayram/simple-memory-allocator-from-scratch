@@ -106,3 +106,46 @@ void free(void *block) {
     header->s.is_free = 1;
     pthread_mutex_lock(&global_malloc_lock);
 }
+
+// Allocate memory for an array of num elems of nsize bytes each
+// and return a pointer to allocated memory. Additionally,
+// the memory is all set to zeroes.
+void *calloc(size_t num, size_t nsize) {
+    size_t size;
+    void *block;
+    if (!num || !nsize) return NULL;
+    size = num * nsize;
+    /*check mul overflow*/
+    if (nsize != size / num) {
+        return NULL;
+    }
+    block = malloc(size);
+    if (!block) {
+        return NULL;
+    }
+
+    // set to zeroes
+    memset(block, 0, size);
+    return block;
+}
+
+void *realloc(void *block, size_t size) {
+    header_t *header;
+    void *ret;
+    if (!block || !size) return malloc(size);
+    header = (header_t*)block - 1;
+    // If the current block doesn't have the requested size, we call malloc() 
+    // to get a block of the requested size, and relocate contents to the new
+    // bigger block using memcpy()
+    // The old memory block is then freed.
+    if (header->s.size >= size) {
+        return block;
+    }
+    
+    ret = malloc(size);
+    if (ret) {
+        memcpy(ret, block, header->s.size);
+        free(block);
+    }
+    return ret;
+}
