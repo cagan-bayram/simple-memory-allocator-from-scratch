@@ -16,7 +16,7 @@ union header {
 typedef union header header_t;
 
 // Pointers for the header
-header_t *head, *tail;
+header_t *head = NULL, *tail = NULL;
 
 // Global lock for preventing two or more threads from concurrently accessing memory
 pthread_mutex_t global_malloc_lock;
